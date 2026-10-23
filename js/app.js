@@ -8,8 +8,8 @@
   const MEDIA_CACHE = 'g2-media-v1';
   const MEALS = [['breakfast', 'Breakfast'], ['lunch', 'Lunch'], ['dinner', 'Dinner']];
   const DEFAULT_TARGETS = { kcal: 2750, protein: 120 };
-  // Install card in Settings is hidden until the client approves; set to true to bring it back.
-  const SHOW_INSTALL = false;
+  // Install card in Settings (set to false to hide it).
+  const SHOW_INSTALL = true;
   const ERASE_AFTER_DAYS = 7;
 
   // ---------------------------------------------------------------- helpers
