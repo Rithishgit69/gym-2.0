@@ -8,6 +8,8 @@
   const MEDIA_CACHE = 'g2-media-v1';
   const MEALS = [['breakfast', 'Breakfast'], ['lunch', 'Lunch'], ['dinner', 'Dinner']];
   const DEFAULT_TARGETS = { kcal: 2750, protein: 120 };
+  // Install card in Settings is hidden until the client approves; set to true to bring it back.
+  const SHOW_INSTALL = false;
   const ERASE_AFTER_DAYS = 7;
 
   // ---------------------------------------------------------------- helpers
@@ -1845,13 +1847,14 @@
     }
     const standalone = window.matchMedia('(display-mode: standalone)').matches;
     v.innerHTML = `
-      <div class="card">
+      ${SHOW_INSTALL ? `<div class="card">
         <div class="card-title">Install on your phone</div>
         ${standalone ? '<div class="muted small">Installed. You\'re using the app version.</div>'
           : state.installPrompt ? '<button class="btn primary block" data-action="install">Install app</button>'
           : '<div class="muted small">In Chrome, tap ⋮ → <b>Add to Home screen</b> (or <b>Install app</b>). It then opens full-screen and works offline.</div>'}
       </div>
-      <div class="section-h">Program</div>
+      <div class="section-h">Program</div>` : ''}
+      ${SHOW_INSTALL ? '' : '<div class="section-h" style="margin-top:4px">Program</div>'}
       <div class="card">
         <div class="field"><span>Track attendance from</span><input type="date" id="set-track" value="${state.settings.trackStart}"></div>
         <div class="field"><span>Split</span><b>Mon–Sat, 6 days</b></div>
