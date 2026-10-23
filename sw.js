@@ -1,5 +1,5 @@
 /* Service worker: offline app shell + offline copy of exercise photos and animations. */
-const VERSION = 'v2.0.2';
+const VERSION = 'v2.0.3';
 // Prefixed so the original Gym Routine app (same origin) never deletes these caches, and vice versa.
 const SHELL_CACHE = `g2-shell-${VERSION}`;
 const MEDIA_CACHE = 'g2-media-v1';

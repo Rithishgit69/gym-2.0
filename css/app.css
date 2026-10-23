@@ -632,3 +632,15 @@ input.switch:checked::after { transform: translateX(20px); background: #fff; }
 .chip-del { border: 0; border-left: 1px solid var(--line-2); background: none; color: var(--bad); width: 34px; font-size: 13px; flex: none; }
 .chip-del:active { background: var(--bad-dim); }
 .mini-del { width: 36px; height: 36px; }
+
+/* install banner + install steps */
+.install-banner { display: flex; align-items: center; gap: 10px; padding: 10px 10px 10px 12px; margin: 0 0 12px; border-radius: 18px; border: 1px solid var(--line-2); background: linear-gradient(135deg, rgba(102, 136, 174, 0.22), var(--surface)); }
+.install-banner img { border-radius: 11px; flex: none; }
+.install-banner .grow { flex: 1; min-width: 0; }
+.install-banner b { font-size: 15px; }
+.install-banner .icon-btn { width: 34px; height: 34px; font-size: 12px; }
+.isteps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.istep { display: flex; gap: 12px; align-items: flex-start; background: var(--surface-2); border: 1px solid var(--line); border-radius: 14px; padding: 12px; font-size: 14.5px; line-height: 1.45; }
+.istep-n { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--accent-grad); color: var(--accent-ink); font-weight: 800; font-size: 13px; }
+.ikey { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; background: var(--surface-3); color: #4a90ff; vertical-align: middle; margin: 0 2px; }
+.ikey svg { width: 18px; height: 18px; }

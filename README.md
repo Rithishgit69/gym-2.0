@@ -1,6 +1,6 @@
 # Gym 2.0
 
-Version 2.0.2
+Version 2.0.3
 
 A mobile-first **Progressive Web App** for a 6-day gym week: it shows what to train each day, how to do every exercise (animation, real photos and video tutorials), logs every set, counts calories and protein per meal, tracks body weight towards a target, and keeps **photo-verified attendance**.
 

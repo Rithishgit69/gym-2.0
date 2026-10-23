@@ -77,6 +77,8 @@
     swap: '<svg viewBox="0 0 24 24"><path d="M7 7h11l-3-3M17 17H6l3 3"/></svg>',
     film: '<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9.5v5l4.5-2.5z"/></svg>',
     moon: '<svg viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>',
+    share: '<svg viewBox="0 0 24 24"><path d="M12 15V3.5M8 7l4-4 4 4M7 10H5.5v10.5h13V10H17"/></svg>',
+    addbox: '<svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8.5v7M8.5 12h7"/></svg>',
     play: '<svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="4"/><path d="M10 9v6l5-3z"/></svg>',
     plus: '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
     trash: '<svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12"/></svg>',
@@ -313,6 +315,7 @@
     const editCard = await editCardHtml();
 
     v.innerHTML = `
+      ${installBannerHtml()}
       ${editCard}
       <div class="days" role="tablist" aria-label="Training days">${tabs}</div>
       ${hero}
@@ -1824,6 +1827,64 @@
       </form>`);
   }
 
+  // ---------------------------------------------------------------- install
+  // Android/desktop Chrome: real install prompt. iPhone/iPad: Apple allows no prompt,
+  // so the button shows the exact Share → Add to Home Screen steps for the browser in use.
+  const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  function installBannerHtml() {
+    if (!SHOW_INSTALL || isStandalone()) return '';
+    try { if (localStorage.getItem('installHidden')) return ''; } catch (_) { /* private mode */ }
+    return `<section class="install-banner"><img src="icons/icon-192.png" alt="" width="44" height="44">
+      <div class="grow"><b>Install Gym 2.0</b><div class="muted small">Full-screen, works offline</div></div>
+      <button class="btn small primary" data-action="install">Install</button>
+      <button class="icon-btn" data-action="install-hide" aria-label="Hide">✕</button></section>`;
+  }
+  async function installApp() {
+    if (state.installPrompt) {
+      const p = state.installPrompt;
+      state.installPrompt = null;
+      p.prompt();
+      const choice = await p.userChoice.catch(() => null);
+      if (choice && choice.outcome === 'accepted') toast('Installing Gym 2.0…');
+      render();
+      return;
+    }
+    openInstallGuide();
+  }
+  function openInstallGuide() {
+    const ua = navigator.userAgent;
+    const step = (n, html) => `<li class="istep"><span class="istep-n">${n}</span><div>${html}</div></li>`;
+    const share = `<span class="ikey">${ICON.share}</span>`;
+    const addHome = `<span class="ikey">${ICON.addbox}</span>`;
+    let title; let sub; let steps; let extra = '';
+    if (isIOS()) {
+      title = 'Install on iPhone';
+      if (/CriOS|FxiOS|EdgiOS/.test(ua)) {
+        sub = /CriOS/.test(ua) ? 'In Chrome on iPhone:' : 'In this browser:';
+        steps = step(1, `Tap the Share button ${share} at the top right, next to the address bar.`)
+          + step(2, `Scroll down and tap <b>Add to Home Screen</b> ${addHome}`)
+          + step(3, 'Tap <b>Add</b>. Gym 2.0 appears on your home screen.');
+        extra = `<div class="muted small" style="margin:10px 2px 0">Don't see "Add to Home Screen"? Update iOS, or open this page in Safari.</div>
+          <button class="btn ghost block" style="margin-top:8px" data-action="copy-link">Copy link for Safari</button>`;
+      } else {
+        sub = 'Apple only allows installing from the Share menu:';
+        steps = step(1, `Tap the Share button ${share} in the bar at the bottom of the screen.`)
+          + step(2, `Scroll down and tap <b>Add to Home Screen</b> ${addHome}`)
+          + step(3, 'Tap <b>Add</b> at the top right. Gym 2.0 appears on your home screen.');
+      }
+    } else {
+      title = 'Install the app';
+      sub = 'Your browser didn\u2019t offer one-tap install yet, so use its menu:';
+      steps = step(1, 'Tap the <b>⋮</b> menu at the top right.')
+        + step(2, 'Tap <b>Install app</b> or <b>Add to Home screen</b>.')
+        + step(3, 'Tap <b>Install</b>. Gym 2.0 appears on your home screen.');
+    }
+    openFormSheet(title, sub, `<ol class="isteps">${steps}</ol>${extra}
+      <button class="btn primary block" style="margin-top:12px" data-action="asheet-close">Got it</button>`);
+  }
+  window.addEventListener('appinstalled', () => { state.installPrompt = null; toast('Gym 2.0 installed'); render(); });
+
   // ---------------------------------------------------------------- render: settings
   const allMediaUrls = () => Object.keys(EX).flatMap((id) => [mediaUrl(id, 'gif'), mediaUrl(id, 'img'), ...(photoUrls(id) || [])]);
 
@@ -1845,13 +1906,13 @@
       storage = `<div class="field"><span>Storage used</span><b>${fmtBytes(e.usage || 0)}</b></div>
         <div class="field"><span>Protected from auto-clear</span><b>${persisted ? 'Yes' : 'Not yet (after first check-in)'}</b></div>`;
     }
-    const standalone = window.matchMedia('(display-mode: standalone)').matches;
+    const standalone = isStandalone();
     v.innerHTML = `
       ${SHOW_INSTALL ? `<div class="card">
         <div class="card-title">Install on your phone</div>
         ${standalone ? '<div class="muted small">Installed. You\'re using the app version.</div>'
-          : state.installPrompt ? '<button class="btn primary block" data-action="install">Install app</button>'
-          : '<div class="muted small">In Chrome, tap ⋮ → <b>Add to Home screen</b> (or <b>Install app</b>). It then opens full-screen and works offline.</div>'}
+          : `<div class="muted small" style="margin-bottom:10px">Adds Gym 2.0 to your home screen. It opens full-screen and works offline.</div>
+            <button class="btn primary block" data-action="install">${ICON.download}Install app</button>`}
       </div>
       <div class="section-h">Program</div>` : ''}
       ${SHOW_INSTALL ? '' : '<div class="section-h" style="margin-top:4px">Program</div>'}
@@ -2121,8 +2182,12 @@
         break;
       case 'save-media': saveMedia(); break;
       case 'clear-media': await caches.delete(MEDIA_CACHE); toast('Offline copy removed'); render(); break;
-      case 'install':
-        if (state.installPrompt) { state.installPrompt.prompt(); await state.installPrompt.userChoice; state.installPrompt = null; render(); }
+      case 'install': installApp(); break;
+      case 'install-hide':
+        try { localStorage.setItem('installHidden', '1'); } catch (_) { /* private mode */ }
+        render(); break;
+      case 'copy-link':
+        try { await navigator.clipboard.writeText(location.origin + location.pathname); toast('Link copied. Paste it in Safari.'); } catch (_) { toast(location.origin + location.pathname); }
         break;
       case 'meal-prev': state.mealDate = keyOf(addDays(parseKey(state.mealDate || todayKey()), -1)); render(); break;
       case 'meal-next': {
@@ -2234,7 +2299,7 @@
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     state.installPrompt = e;
-    if (state.tab === 'settings') render();
+    if (state.tab === 'settings' || state.tab === 'today') render();
   });
 
   document.addEventListener('visibilitychange', () => {
